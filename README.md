@@ -5,11 +5,11 @@ A utility to manage your linux deployments.
 ## How does it work
 
 - You start a server using `diploy server`
-- You create a `diploy.yml` with below format file and run `diploy add` in the same directory.
 - **diploy** exposes a http server for instructions [take care of *firewall* !!]
+- You create a `diploy.yml` with below format file and run `diploy add` in the same directory.
 - Now you get endpoits for each configuration you add with the below format.
-- Use these as webhooks with Github or just manually.
-- Or just use the CLI.
+- Use these as webhooks with Github... or just manually.
+- Or just use the CLI for manual work.
 
 ## diploy.yml
 
@@ -30,17 +30,13 @@ run:                        // To start the application
 ## endpoints
 All requests are POST requests.
 
+For now there is no authentication in this. (See TODO)
+
 #### Start processes
 start:
   - update codebase: `/start/update/{name}`
   - build application: `/start/build/{name}`
   - run application: `/start/run/{name}`
-
-<!-- #### Add an application [IDK why this is there]
-<!-- TODO: fix this -->
-<!-- add:
-    `/add` <br/>
-    Body: diploy.yml file (stringified ["Content-Type": "text/plain"]) -->
 
 #### Stop processes for a given application
 stop:
@@ -55,7 +51,6 @@ Usage:
 
 Available Commands:
   add         add a configuration
-  doctor      diploy health checkup tool
   help        Help about any command
   remove      remove a configuaration by name
   server      Start diploy server
@@ -69,18 +64,18 @@ Flags:
 Use "diploy [command] --help" for more information about a command.
 ```
 
-**Extra:** Use
+**Extra:** Use `diploy server setup` to setup a systemd file.
 
 ### Caveats
-Processes started with **diploy** will also stop if diploy is stopped.
+- Processes started with **diploy** will also stop if diploy is stopped.
 
+### Troubleshooting
+- If there is an error `Environment variable `DIPLOY_LOG_PATH` not set`, set a temporary environment variable with value './' accroding to OS (if testing).
 ### Todo
-See the dedicated file.
-
+See the dedicated [TODO](./TODO.md) file.
 
 ## Stuff Used
 
-- golang
 - gorm + sqlite
 - gorilla/mux
 - cobra

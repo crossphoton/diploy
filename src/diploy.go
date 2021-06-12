@@ -110,9 +110,9 @@ func AddFromFile(file []byte, workdir string) error {
 	}
 	config.Workdir = workdir
 
-	if config.Build.Command == "" {
-		config.Build.Command = "git pull"
-		config.Build.Type = "command"
+	if config.Update.Command == "" {
+		config.Update.Command = "git pull"
+		config.Update.Type = "command"
 	}
 
 	err = saveConfig(&config)
