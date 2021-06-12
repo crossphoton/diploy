@@ -18,7 +18,7 @@ jobs:
           go-version: 1.16
 
       - name: Build
-        run: go build -v ./... -o diploy
+        run: go build -o diploy
 
       - name: Release
         uses: softprops/action-gh-release@v1
