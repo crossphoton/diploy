@@ -16,9 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 
 	"github.com/crossphoton/diploy/src"
@@ -31,7 +29,7 @@ var cfgFile string
 var addCmd = &cobra.Command{
 	Use:   "add",
 	Short: "add a configuration",
-	Run:   addConfiguration,
+	RunE:  addConfiguration,
 }
 
 func init() {
@@ -39,21 +37,20 @@ func init() {
 	addCmd.PersistentFlags().StringVar(&cfgFile, "file", "diploy.yml", "config file (default is ./diploy.yml)")
 }
 
-func addConfiguration(cmd *cobra.Command, args []string) {
+func addConfiguration(cmd *cobra.Command, args []string) (err error) {
 	fileFlag := cmd.Flag("file").Value
 	file, err := ioutil.ReadFile(fileFlag.String())
 	if err != nil {
-		fmt.Println("couldn't load file - ", fileFlag.String(), " : ", err)
-		os.Exit(1)
+		return
 	}
 	workdir, err := os.Getwd()
 	if err != nil {
-		log.Fatal("couldn't get current working directory: ", err)
-		os.Exit(137)
+		return
 	}
 	err = src.AddFromFile(file, workdir)
 	if err != nil {
-		fmt.Println("can't use the supplied file: ", err)
-		os.Exit(1)
+		return
 	}
+
+	return err
 }

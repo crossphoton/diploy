@@ -15,8 +15,13 @@ limitations under the License.
 */
 package main
 
-import "github.com/crossphoton/diploy/cmd"
+import (
+	"os"
+
+	"github.com/crossphoton/diploy/cmd"
+)
 
 func main() {
+	os.Stderr = os.Stdout
 	cmd.Execute()
 }

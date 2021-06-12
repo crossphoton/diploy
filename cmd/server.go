@@ -19,12 +19,30 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/crossphoton/diploy/src"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 )
+
+var serviceFile = `[Unit]
+Description=diploy server
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+User=root
+ExecStart=/usr/bin/diploy server --addr %s >> %s/diploy-log.txt
+
+[Install]
+WantedBy=multi-user.target
+`
 
 // serverCmd represents the server command
 var serverCmd = &cobra.Command{
@@ -34,27 +52,80 @@ var serverCmd = &cobra.Command{
 }
 
 var serverSetupCmd = &cobra.Command{
-	Use:   "server",
-	Short: "Start diploy server",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("server setup called")
-	},
+	Use:   "setup",
+	Short: "setup diploy server as a service",
+	RunE:  serveSetup,
 }
+
+func serveSetup(cmd *cobra.Command, args []string) error {
+	fmt.Println(strings.ToUpper("diploy server setup"))
+
+	// Create directories
+	fmt.Println("using the below path for logs and database (build manually to change):")
+	fmt.Println("Logs:", src.LOG_PATH)
+	fmt.Println("Config Database:", src.DB_PATH)
+
+	err := os.MkdirAll(src.DB_PATH, 0700)
+	err = os.MkdirAll(src.LOG_PATH, 0700)
+
+	if err != nil {
+		return fmt.Errorf("couldn't create directories: %v", err)
+	}
+
+	executablePath, err := exec.LookPath("diploy")
+	if err != nil {
+		dir, _ := os.Getwd()
+		executablePath = dir + "/diploy"
+	}
+
+	binaryPath, _ := exec.LookPath("echo")
+	tempF := strings.Split(binaryPath, "/")
+	tempF = tempF[:len(tempF)-1]
+	binaryPath = strings.Join(tempF, "/") + "/diploy"
+
+	fmt.Printf("bin path [to store binary] (%s): ", binaryPath)
+
+	temp := ""
+	if count, _ := fmt.Scanf("%s", &temp); count > 0 {
+		binaryPath = temp
+	}
+
+	err = exec.Command("cp", executablePath, binaryPath).Run()
+	if err != nil {
+		return fmt.Errorf("couldn't copy binary to %s: %s", binaryPath, err)
+	}
+
+	fmt.Print("setup systemd service file (in /etc/systemd/system)? (y/N)")
+	if count, _ := fmt.Scanf("%s", &temp); count > 0 {
+		if strings.ToLower(temp) == ("y") {
+			serverAddress := ""
+			fmt.Print("server address (0.0.0.0:80): ")
+			if count, _ = fmt.Scanf("%s", &serverAddress); count == 0 {
+				serverAddress = "0.0.0.0:80"
+			}
+			servicefile := []byte(fmt.Sprintf(serviceFile, serverAddress))
+			file, err := os.Create("/etc/systemd/system/diploy.service")
+			if err != nil {
+				return fmt.Errorf("couldn't create file /etc/systemd/system/diploy.service: %s", err)
+			}
+			_, err = file.Write([]byte(servicefile))
+			if err != nil {
+				return fmt.Errorf("couldn't write to file: %s", err)
+			}
+			file.Close()
+		}
+	}
+
+	return nil
+}
+
+var server_address string
 
 func init() {
 	rootCmd.AddCommand(serverCmd)
 
+	serverCmd.PersistentFlags().StringVar(&server_address, "addr", "0.0.0.0:80", "specify address for server [ip:port]")
 	serverCmd.AddCommand(serverSetupCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// serverCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// serverCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func httpHandler() (handler *mux.Router) {
@@ -69,15 +140,11 @@ func httpHandler() (handler *mux.Router) {
 }
 
 func server(cmd *cobra.Command, args []string) {
-	server_address := cmd.Flag("addr").Value
-	if server_address.String() == ":80" {
-		server_address.Set("localhost:80")
-	}
 
 	fmt.Printf("Initializing server at http://%s\n", server_address)
 
 	server := http.Server{
-		Addr:         server_address.String(),
+		Addr:         server_address,
 		Handler:      httpHandler(),
 		WriteTimeout: time.Second * 3,
 	}
@@ -96,7 +163,14 @@ func stopWithName(w http.ResponseWriter, r *http.Request) {
 }
 
 func startWithName(w http.ResponseWriter, r *http.Request) {
+	var err error
 	mode := mux.Vars(r)["mode"]
+	if !src.MODES[mode] {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(fmt.Sprintf("{\"message\": \"failed\", \"error\": \"%s\"}",
+			fmt.Sprintf("mode '%s' not supported", mode))))
+		return
+	}
 	config, err := repetitive(w, r)
 	if err != nil {
 		return

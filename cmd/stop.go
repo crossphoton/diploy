@@ -17,7 +17,9 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/crossphoton/diploy/src"
 	"github.com/spf13/cobra"
 )
 
@@ -25,21 +27,31 @@ import (
 var stopCmd = &cobra.Command{
 	Use:   "stop",
 	Short: "stop a service with name",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("stop called")
-	},
+	RunE:  stop,
 }
 
 func init() {
 	rootCmd.AddCommand(stopCmd)
+}
 
-	// Here you will define your flags and configuration settings.
+func stop(cmd *cobra.Command, args []string) error {
+	var allFailed = true
+	if len(args) < 2 {
+		return fmt.Errorf("Usage: stop [config_name]")
+	}
+	for _, name := range args {
+		config, err := src.SearchConfig(name)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "no such config: ", name)
+			continue
+		}
+		config.Stop()
+		allFailed = false
+	}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// stopCmd.PersistentFlags().String("foo", "", "A help for foo")
+	if allFailed {
+		os.Exit(1)
+	}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// stopCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	return nil
 }

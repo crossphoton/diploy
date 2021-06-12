@@ -1,7 +1,7 @@
 install:
 	go install
 
-build: diploy
+build:
 	go build -o diploy
 
 server: build
