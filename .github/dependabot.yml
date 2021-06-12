@@ -5,6 +5,6 @@ updates:
     schedule:
       interval: daily
       timezone: Asia/Calcutta
-    open-pull-requests-limit: 99
+    open-pull-requests-limit: 10
     reviewers:
       - crossphoton
