@@ -2,7 +2,6 @@
 
 A utility to manage your linux deployments.
 
-
 ## How does it work
 
 - You start a server using `diploy server`
@@ -46,7 +45,31 @@ start:
 #### Stop processes for a given application
 stop:
     `/stop/{name}`
-  
+
+
+### CLI Usage
+
+```
+Usage:
+  diploy [command]
+
+Available Commands:
+  add         add a configuration
+  doctor      diploy health checkup tool
+  help        Help about any command
+  remove      remove a configuaration by name
+  server      Start diploy server
+  start       start a service with name
+  stop        stop a service with name
+
+Flags:
+  -h, --help     help for diploy
+  -t, --toggle   Help message for toggle
+
+Use "diploy [command] --help" for more information about a command.
+```
+
+**Extra:** Use
 
 ### Caveats
 Processes started with **diploy** will also stop if diploy is stopped.

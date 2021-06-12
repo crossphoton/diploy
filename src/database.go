@@ -63,3 +63,7 @@ func getProcesses(name string) (a []process, err error) {
 func deleteProcesses(name string) error {
 	return database.Where("name = ?", name).Delete(process{}).Error
 }
+
+func deleteConfig(c *Config) error {
+	return database.Delete(c).Error
+}

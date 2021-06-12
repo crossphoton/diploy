@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -38,7 +37,10 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=always
 User=root
-ExecStart=/usr/bin/diploy server --addr %s >> %s/diploy-log.txt
+ExecStart=%s server --addr %s >> %s/diploy-log.txt
+
+Environment=DIPLOY_DB_URL=%s/diploy.db
+Environment=DIPLOY_LOG_PATH=%s
 
 [Install]
 WantedBy=multi-user.target
@@ -48,9 +50,10 @@ WantedBy=multi-user.target
 var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Start diploy server",
-	Run:   server,
+	RunE:  server,
 }
 
+// serverSetupCmd represents the setup command
 var serverSetupCmd = &cobra.Command{
 	Use:   "setup",
 	Short: "setup diploy server as a service",
@@ -58,52 +61,56 @@ var serverSetupCmd = &cobra.Command{
 }
 
 func serveSetup(cmd *cobra.Command, args []string) error {
-	fmt.Println(strings.ToUpper("diploy server setup"))
+	var temp string
+	fmt.Println(strings.ToUpper("diploy server setup\n"))
 
 	// Create directories
-	fmt.Println("using the below path for logs and database (build manually to change):")
-	fmt.Println("Logs:", src.LOG_PATH)
-	fmt.Println("Config Database:", src.DB_PATH)
+	fmt.Print("You'll be now asked for the configurations to use\n\n")
 
-	err := os.MkdirAll(src.DB_PATH, 0700)
-	err = os.MkdirAll(src.LOG_PATH, 0700)
+	if src.LOG_PATH == "" {
+		src.LOG_PATH = "/var/log/diploy"
+	}
+
+	consent("Directory for logs", &src.LOG_PATH)
+
+	err := os.MkdirAll(src.LOG_PATH, 0700)
 
 	if err != nil {
 		return fmt.Errorf("couldn't create directories: %v", err)
 	}
 
+	// TODO: Maybe change to location of this process
 	executablePath, err := exec.LookPath("diploy")
 	if err != nil {
 		dir, _ := os.Getwd()
 		executablePath = dir + "/diploy"
 	}
 
+	// Get OS bin folder
 	binaryPath, _ := exec.LookPath("echo")
 	tempF := strings.Split(binaryPath, "/")
 	tempF = tempF[:len(tempF)-1]
 	binaryPath = strings.Join(tempF, "/") + "/diploy"
 
-	fmt.Printf("bin path [to store binary] (%s): ", binaryPath)
+	consent("copy binary to", &binaryPath)
 
-	temp := ""
-	if count, _ := fmt.Scanf("%s", &temp); count > 0 {
-		binaryPath = temp
-	}
-
+	// Copy diploy binary
+	fmt.Println("Saving this binary at", binaryPath)
 	err = exec.Command("cp", executablePath, binaryPath).Run()
 	if err != nil {
 		return fmt.Errorf("couldn't copy binary to %s: %s", binaryPath, err)
 	}
 
+	// Consent for systemd file
 	fmt.Print("setup systemd service file (in /etc/systemd/system)? (y/N)")
 	if count, _ := fmt.Scanf("%s", &temp); count > 0 {
 		if strings.ToLower(temp) == ("y") {
-			serverAddress := ""
-			fmt.Print("server address (0.0.0.0:80): ")
-			if count, _ = fmt.Scanf("%s", &serverAddress); count == 0 {
-				serverAddress = "0.0.0.0:80"
-			}
-			servicefile := []byte(fmt.Sprintf(serviceFile, serverAddress))
+			serverAddress := "0.0.0.0:80"
+			consent("server address", &serverAddress)
+
+			// Form systemd file
+			servicefile := []byte(fmt.Sprintf(serviceFile,
+				binaryPath, serverAddress, src.LOG_PATH, src.LOG_PATH, src.LOG_PATH))
 			file, err := os.Create("/etc/systemd/system/diploy.service")
 			if err != nil {
 				return fmt.Errorf("couldn't create file /etc/systemd/system/diploy.service: %s", err)
@@ -113,10 +120,24 @@ func serveSetup(cmd *cobra.Command, args []string) error {
 				return fmt.Errorf("couldn't write to file: %s", err)
 			}
 			file.Close()
+
+			fmt.Println()
+			fmt.Println("Use `systemctl enable diploy` to enable this")
+			fmt.Println("Edit this anytime using `systemctl edit diploy`")
 		}
 	}
+	fmt.Println("Setup complete. Exiting")
 
 	return nil
+}
+
+func consent(purpose string, current *string) {
+	fmt.Printf("%s (%s): ", purpose, *current)
+
+	temp := ""
+	if count, _ := fmt.Scanf("%s", &temp); count > 0 {
+		*current = temp
+	}
 }
 
 var server_address string
@@ -139,7 +160,7 @@ func httpHandler() (handler *mux.Router) {
 	return
 }
 
-func server(cmd *cobra.Command, args []string) {
+func server(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Initializing server at http://%s\n", server_address)
 
@@ -149,7 +170,7 @@ func server(cmd *cobra.Command, args []string) {
 		WriteTimeout: time.Second * 3,
 	}
 
-	log.Fatal(server.ListenAndServe())
+	return server.ListenAndServe()
 }
 
 func stopWithName(w http.ResponseWriter, r *http.Request) {

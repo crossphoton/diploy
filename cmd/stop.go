@@ -37,7 +37,7 @@ func init() {
 func stop(cmd *cobra.Command, args []string) error {
 	var allFailed = true
 	if len(args) < 2 {
-		return fmt.Errorf("Usage: stop [config_name]")
+		return fmt.Errorf("Usage: stop config_name...")
 	}
 	for _, name := range args {
 		config, err := src.SearchConfig(name)

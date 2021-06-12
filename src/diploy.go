@@ -68,6 +68,10 @@ func (c *Config) Stop() {
 	deleteProcesses(c.Name)
 }
 
+func (c *Config) Delete() error {
+	return deleteConfig(c)
+}
+
 // StartProcess starts a process with given
 func StartProcess(command string, args []string, name, logFile, workdir string, script bool) (pid int, err error) {
 	if script {

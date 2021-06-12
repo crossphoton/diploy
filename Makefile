@@ -5,4 +5,7 @@ build:
 	go build -o diploy
 
 server: build
-	./diploy
+	DIPLOY_LOG_PATH=./ ./diploy
+
+setup: build
+	DIPLOY_LOG_PATH=./ ./diploy server setup

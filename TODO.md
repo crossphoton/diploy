@@ -7,3 +7,6 @@
 - [ ] Error on wrong endpoint in start (Better error handling overall)
 - [ ] **Authentication system**
 - [ ] Working directory
+- [ ] Error checking for ENVs
+- [ ] Add a doctor command if needed
+- [ ] Generate hash for a config and use that as identifier in requests
