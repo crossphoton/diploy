@@ -3,6 +3,8 @@ name: Go
 on:
   push:
     branches: [main]
+    tags:
+      - "*"
   pull_request:
     branches: [main]
 
@@ -30,9 +32,9 @@ jobs:
         run: go build -o diploy
 
       - name: Release
-        uses: actions/upload-artifact@v2
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          path: ./diploy
-
+          files: diploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
