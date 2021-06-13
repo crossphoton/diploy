@@ -26,6 +26,10 @@ run:                        // To start the application
   command: echo This is run
   type: command
 ```
+## Installation
+- Use the command `curl -s https://raw.githubusercontent.com/crossphoton/diploy/main/scripts/install.sh | /bin/sh` (This starts the setup too)
+- Use `go get github.com/crossphoton/diploy` and build it
+- Clone the repository (or [download ZIP](https://github.com/crossphoton/diploy/archive/refs/heads/main.zip))
 
 ## endpoints
 All requests are POST requests.
