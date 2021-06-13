@@ -5,4 +5,4 @@ echo Giving permissions
 chmod +x diploy
 
 echo Running setup
-./diploy_binary server setup
+./diploy server setup
