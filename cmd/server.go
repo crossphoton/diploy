@@ -37,10 +37,7 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=always
 User=root
-ExecStart=%s server --addr %s >> %s/diploy-log.txt
-
-Environment=DIPLOY_DB_URL=%s/diploy.db
-Environment=DIPLOY_LOG_PATH=%s
+ExecStart=%s server --addr %s --logs %s >> %s/diploy-log.txt
 
 [Install]
 WantedBy=multi-user.target
@@ -67,14 +64,9 @@ func serveSetup(cmd *cobra.Command, args []string) error {
 	// Create directories
 	fmt.Print("You'll be now asked for the configurations to use\n\n")
 
-	if src.LOG_PATH == "" {
-		src.LOG_PATH = "/var/log/diploy"
-	}
-
 	consent("Directory for logs", &src.LOG_PATH)
 
 	err := os.MkdirAll(src.LOG_PATH, 0700)
-
 	if err != nil {
 		return fmt.Errorf("couldn't create directories: %v", err)
 	}
@@ -110,7 +102,7 @@ func serveSetup(cmd *cobra.Command, args []string) error {
 
 			// Form systemd file
 			servicefile := []byte(fmt.Sprintf(serviceFile,
-				binaryPath, serverAddress, src.LOG_PATH, src.LOG_PATH, src.LOG_PATH))
+				binaryPath, serverAddress, src.LOG_PATH, src.LOG_PATH))
 			file, err := os.Create("/etc/systemd/system/diploy.service")
 			if err != nil {
 				return fmt.Errorf("couldn't create file /etc/systemd/system/diploy.service: %s", err)
@@ -157,6 +149,7 @@ func httpHandler() (handler *mux.Router) {
 	handler.HandleFunc("/start/{mode}/{name}", startWithName).Methods("POST")
 	handler.HandleFunc("/stop/{name}", stopWithName).Methods("POST")
 	handler.HandleFunc("/restart/{name}", restartWithName).Methods("POST")
+	handler.HandleFunc("/seq/{operations}/{name}", operations).Methods("POST")
 	return
 }
 
@@ -210,14 +203,41 @@ func restartWithName(w http.ResponseWriter, r *http.Request) {
 	go config.Restart()
 }
 
-func repetitive(w http.ResponseWriter, r *http.Request) (config src.Config, err error) {
-	name := mux.Vars(r)["name"]
-	config, err = src.SearchConfig(name)
+func operations(w http.ResponseWriter, r *http.Request) {
+	config, err := repetitive(w, r)
+	if err != nil {
+		return
+	}
+
+	for _, operation := range strings.Split(mux.Vars(r)["operations"], "+") {
+		switch operation {
+		case "stop":
+			config.Stop()
+		case "restart":
+			config.Restart()
+		default:
+			err = config.Start(operation)
+		}
+	}
+
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(fmt.Sprintf("{\"message\": \"failed\", \"error\": \"%s\"}", err)))
 		return
 	}
+
+	fmt.Fprintf(w, "{\"message\": \"successful\", \"error\": null}")
+
+}
+
+func repetitive(w http.ResponseWriter, r *http.Request) (config src.Config, err error) {
+	name := mux.Vars(r)["name"]
+	config, err = src.SearchConfig(name)
 	w.Header().Add("Content-Type", "application/json")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(fmt.Sprintf("{\"message\": \"failed\", \"error\": \"%s\"}", err)))
+		return
+	}
 	return
 }

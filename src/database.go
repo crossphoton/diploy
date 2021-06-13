@@ -19,7 +19,7 @@ type process struct {
 }
 
 func openDatabase() {
-	database, err = gorm.Open(sqlite.Open(DB_URL), &gorm.Config{
+	database, err = gorm.Open(sqlite.Open(LOG_PATH+"/diploy.db"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {

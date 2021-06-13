@@ -21,6 +21,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/crossphoton/diploy/src"
 	_ "github.com/crossphoton/diploy/src"
 	"github.com/spf13/viper"
 )
@@ -29,9 +30,6 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "diploy",
 	Short: "Deploy and update your application with Webhooks and CLI",
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -43,9 +41,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringVar(&src.LOG_PATH, "logs", "./diploy", "specify logs location")
 }
 
 // initConfig reads in config file and ENV variables if set.

@@ -41,6 +41,9 @@ start:
 #### Stop processes for a given application
 stop:
     `/stop/{name}`
+  
+#### Run a sequence of operations
+  `/seq/`
 
 
 ### CLI Usage
@@ -58,10 +61,10 @@ Available Commands:
   stop        stop a service with name
 
 Flags:
-  -h, --help     help for diploy
-  -t, --toggle   Help message for toggle
+  -h, --help          help for diploy
+      --logs string   specify logs location (default "./diploy")
 
-Use "diploy [command] --help" for more information about a command.
+Use "diploy [command] --help" or "diploy help [command]" for more information about a command.
 ```
 
 **Extra:** Use `diploy server setup` to setup a systemd file.
@@ -70,7 +73,6 @@ Use "diploy [command] --help" for more information about a command.
 - Processes started with **diploy** will also stop if diploy is stopped.
 
 ### Troubleshooting
-- If there is an error `Environment variable `DIPLOY_LOG_PATH` not set`, set a temporary environment variable with value './' accroding to OS (if testing).
 ### Todo
 See the dedicated [TODO](./TODO.md) file.
 
