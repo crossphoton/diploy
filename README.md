@@ -47,7 +47,12 @@ stop:
     `/stop/{name}`
   
 #### Run a sequence of operations
-  `/seq/`
+  `/seq/<a>+<b>+<c>/{name}`
+
+##### Examples:
+- `/seq/stop+update+build+run/golang-app`
+- `/seq/restart/nodejs-app`
+- `/seq/update+restart/website`
 
 
 ### CLI Usage

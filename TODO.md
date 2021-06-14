@@ -10,3 +10,7 @@
 - [ ] Error checking for ENVs
 - [ ] Add a doctor command if needed
 - [ ] Generate hash for a config and use that as identifier in requests
+
+
+## Misc
+- [ ] Setup skip ci
