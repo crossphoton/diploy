@@ -47,6 +47,7 @@ func addConfiguration(cmd *cobra.Command, args []string) (err error) {
 	if err != nil {
 		return
 	}
+	consent("diploy logs location", &src.LOG_PATH)
 	err = src.AddFromFile(file, workdir)
 	if err != nil {
 		return

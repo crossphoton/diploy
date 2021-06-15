@@ -41,7 +41,8 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&src.LOG_PATH, "logs", "./diploy", "specify logs location")
+	rootCmd.PersistentFlags().StringVar(&server_address, "addr", "0.0.0.0:5522", "specify address for server [ip:port]")
+	rootCmd.PersistentFlags().StringVar(&src.LOG_PATH, "logs", "/var/log/diploy", "specify logs location")
 }
 
 // initConfig reads in config file and ENV variables if set.

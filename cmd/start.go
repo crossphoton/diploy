@@ -34,19 +34,18 @@ var startCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(startCmd)
-	startCmd.PersistentFlags().StringVar(&server_address, "addr", "0.0.0.0:80", "specify address for server [ip:port]")
 }
 
 func start(cmd *cobra.Command, args []string) error {
 	var allFailed = true
 	if len(args) < 2 {
-		return fmt.Errorf("Usage: start [method] [config_name]")
+		return fmt.Errorf("Usage: start [node] [config_name]")
 	}
 
 	mode := args[0]
 	args = args[1:]
 	for _, name := range args {
-		err := startUtil(name, mode)
+		err := httpUtil(name, "start/"+mode)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "error: ", err)
 			continue
@@ -60,8 +59,8 @@ func start(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func startUtil(name, mode string) (err error) {
-	url := fmt.Sprintf("http://%s/start/%s/%s", server_address, mode, name)
+func httpUtil(name, mode string) (err error) {
+	url := fmt.Sprintf("http://%s/%s/%s", server_address, mode, name)
 
 	response, err := http.Post(url, "", bytes.NewBuffer([]byte("")))
 	if err != nil {

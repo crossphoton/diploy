@@ -84,38 +84,41 @@ func serveSetup(cmd *cobra.Command, args []string) error {
 	tempF = tempF[:len(tempF)-1]
 	binaryPath = strings.Join(tempF, "/") + "/diploy"
 
-	consent("copy binary to", &binaryPath)
-
 	// Copy diploy binary
-	fmt.Println("Saving this binary at", binaryPath)
-	err = exec.Command("cp", executablePath, binaryPath).Run()
-	if err != nil {
-		return fmt.Errorf("couldn't copy binary to %s: %s", binaryPath, err)
-	}
+	yOrNo := "y/N"
+	changed := consent("Copy binary to", &yOrNo)
+	if changed && strings.ToLower(yOrNo) == "y" {
+		fmt.Println("Saving this binary at", binaryPath)
+		err = exec.Command("cp", executablePath, binaryPath).Run()
+		if err != nil {
+			return fmt.Errorf("couldn't copy binary to %s: %s", binaryPath, err)
+		}
 
-	// Consent for systemd file
-	fmt.Print("setup systemd service file (in /etc/systemd/system)? (y/N)")
-	if count, _ := fmt.Scanf("%s", &temp); count > 0 {
-		if strings.ToLower(temp) == ("y") {
-			serverAddress := "0.0.0.0:80"
-			consent("server address", &serverAddress)
+		// Consent for systemd file
+		fmt.Print("setup systemd service file (in /etc/systemd/system)? (y/N)")
+		if count, _ := fmt.Scanf("%s", &temp); count > 0 {
+			if strings.ToLower(temp) == ("y") {
+				serverAddress := "0.0.0.0:5522"
+				consent("server address", &serverAddress)
 
-			// Form systemd file
-			servicefile := []byte(fmt.Sprintf(serviceFile,
-				binaryPath, serverAddress, src.LOG_PATH, src.LOG_PATH))
-			file, err := os.Create("/etc/systemd/system/diploy.service")
-			if err != nil {
-				return fmt.Errorf("couldn't create file /etc/systemd/system/diploy.service: %s", err)
+				// Form systemd file
+				servicefile := []byte(fmt.Sprintf(serviceFile,
+					binaryPath, serverAddress, src.LOG_PATH, src.LOG_PATH))
+				file, err := os.Create("/etc/systemd/system/diploy.service")
+				if err != nil {
+					return fmt.Errorf("couldn't create file /etc/systemd/system/diploy.service: %s", err)
+				}
+				_, err = file.Write([]byte(servicefile))
+				if err != nil {
+					return fmt.Errorf("couldn't write to file: %s", err)
+				}
+				file.Close()
+
+				fmt.Println()
+				fmt.Println("Use `systemctl enable diploy` to enable this")
+				fmt.Println("Use `systemctl start diploy` to start the server")
+				fmt.Println("Edit this anytime using `systemctl edit diploy`")
 			}
-			_, err = file.Write([]byte(servicefile))
-			if err != nil {
-				return fmt.Errorf("couldn't write to file: %s", err)
-			}
-			file.Close()
-
-			fmt.Println()
-			fmt.Println("Use `systemctl enable diploy` to enable this")
-			fmt.Println("Edit this anytime using `systemctl edit diploy`")
 		}
 	}
 	fmt.Println("Setup complete. Exiting")
@@ -123,13 +126,15 @@ func serveSetup(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func consent(purpose string, current *string) {
+func consent(purpose string, current *string) (changed bool) {
 	fmt.Printf("%s (%s): ", purpose, *current)
 
 	temp := ""
 	if count, _ := fmt.Scanf("%s", &temp); count > 0 {
+		changed = true
 		*current = temp
 	}
+	return
 }
 
 var server_address string
@@ -137,7 +142,6 @@ var server_address string
 func init() {
 	rootCmd.AddCommand(serverCmd)
 
-	serverCmd.PersistentFlags().StringVar(&server_address, "addr", "0.0.0.0:80", "specify address for server [ip:port]")
 	serverCmd.AddCommand(serverSetupCmd)
 }
 

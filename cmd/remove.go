@@ -36,9 +36,10 @@ func init() {
 
 func delete(cmd *cobra.Command, args []string) error {
 	var allFailed = true
-	if len(args) < 2 {
+	if len(args) < 1 {
 		return fmt.Errorf("Usage: remove config_name...")
 	}
+	consent("diploy logs location", &src.LOG_PATH)
 	for _, name := range args {
 		config, err := src.SearchConfig(name)
 		if err != nil {

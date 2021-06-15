@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/crossphoton/diploy/src"
 	"github.com/spf13/cobra"
 )
 
@@ -36,16 +35,15 @@ func init() {
 
 func stop(cmd *cobra.Command, args []string) error {
 	var allFailed = true
-	if len(args) < 2 {
+	if len(args) < 1 {
 		return fmt.Errorf("Usage: stop config_name...")
 	}
 	for _, name := range args {
-		config, err := src.SearchConfig(name)
+		err := httpUtil(name, "stop")
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "no such config: ", name)
+			fmt.Fprintln(os.Stderr, "error: ", err)
 			continue
 		}
-		config.Stop()
 		allFailed = false
 	}
 

@@ -32,11 +32,11 @@ type Config struct {
 func (c *Config) Start(mode string) error {
 	switch mode {
 	case "build":
-		return c.Build.start(c.Name, LOG_PATH+c.Name+"/build", c.Workdir)
+		return c.Build.start(c.Name, LOG_PATH+"/"+c.Name+"/build", c.Workdir)
 	case "run":
-		return c.Run.start(c.Name, LOG_PATH+c.Name+"/run", c.Workdir)
+		return c.Run.start(c.Name, LOG_PATH+"/"+c.Name+"/run", c.Workdir)
 	case "update":
-		return c.Update.start(c.Name, LOG_PATH+c.Name+"/update", c.Workdir)
+		return c.Update.start(c.Name, LOG_PATH+"/"+c.Name+"/update", c.Workdir)
 	default:
 		return fmt.Errorf("%s: not a valid option", mode)
 	}
@@ -121,7 +121,7 @@ func AddFromFile(file []byte, workdir string) error {
 	}
 
 	// For logs
-	os.Mkdir(LOG_PATH+config.Name, 0700)
+	os.Mkdir(LOG_PATH+"/"+config.Name, 0700)
 
 	return nil
 }

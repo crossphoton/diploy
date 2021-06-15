@@ -23,8 +23,8 @@ func openDatabase() {
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "couldn't open database file")
-		panic(err)
+		fmt.Fprintln(os.Stderr, "Couldn't open database file")
+		os.Exit(1)
 	}
 	database.AutoMigrate(&Config{})
 	database.AutoMigrate(&process{})
