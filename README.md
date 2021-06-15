@@ -84,7 +84,7 @@ Use "diploy [command] --help" or "diploy help [command]" for more information ab
 ### Cleanup
 You can use the script if defaults were used during setup
 
-`curl -s https://raw.githubusercontent.com/crossphoton/diploy/main/scripts/install.sh | /bin/sh`
+`curl -s https://raw.githubusercontent.com/crossphoton/diploy/main/scripts/cleanup.sh | /bin/sh`
 ### Troubleshooting
 - If problems with database: Specify logs location using `--logs` flag
 - If problems with connection: Specify server address using `--addr` flag
