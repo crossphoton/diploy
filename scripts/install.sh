@@ -7,6 +7,8 @@ curl -s https://api.github.com/repos/crossphoton/diploy/releases/latest \
 echo Done
 echo Giving permissions
 chmod +x diploy
+echo
 
-echo Running setup
-./diploy server setup
+#echo Running setup
+echo Setup server using ./diploy server setup
+echo Bye bye...
