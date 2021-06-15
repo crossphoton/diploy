@@ -81,7 +81,13 @@ Use "diploy [command] --help" or "diploy help [command]" for more information ab
 ### Caveats
 - Processes started with **diploy** will also stop if diploy is stopped.
 
+### Cleanup
+You can use the script if defaults were used during setup
+
+`curl -s https://raw.githubusercontent.com/crossphoton/diploy/main/scripts/install.sh | /bin/sh`
 ### Troubleshooting
+- If problems with database: Specify logs location using `--logs` flag
+- If problems with connection: Specify server address using `--addr` flag
 ### Todo
 See the dedicated [TODO](./TODO.md) file.
 
