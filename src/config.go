@@ -7,3 +7,10 @@ var MODES = map[string]bool{
 	"build":  true,
 	"update": true,
 }
+
+type CommandType string
+
+const (
+	command CommandType = "command"
+	script  CommandType = "script"
+)

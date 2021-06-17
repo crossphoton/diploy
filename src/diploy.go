@@ -11,13 +11,13 @@ import (
 )
 
 type Command struct {
-	Command string `yaml:"command" gorm:"column:command"`
-	Type    string `yaml:"type" gorm:"column:type"`
+	Command string      `yaml:"command" gorm:"column:command"`
+	Type    CommandType `yaml:"type" gorm:"column:type"`
 }
 
 func (c *Command) start(name, logfile, workdir string) (err error) {
 	command := strings.Split(c.Command, " ")
-	_, err = StartProcess(command[0], command[1:], name, logfile, workdir, (c.Type == "script"))
+	_, err = StartProcess(command[0], command[1:], name, logfile, workdir, (c.Type == script))
 	return
 }
 
@@ -30,13 +30,14 @@ type Config struct {
 }
 
 func (c *Config) Start(mode string) error {
+	var basePath = LOG_PATH + "/" + c.Name
 	switch mode {
 	case "build":
-		return c.Build.start(c.Name, LOG_PATH+"/"+c.Name+"/build", c.Workdir)
+		return c.Build.start(c.Name, basePath+"/build", c.Workdir)
 	case "run":
-		return c.Run.start(c.Name, LOG_PATH+"/"+c.Name+"/run", c.Workdir)
+		return c.Run.start(c.Name, basePath+"/run", c.Workdir)
 	case "update":
-		return c.Update.start(c.Name, LOG_PATH+"/"+c.Name+"/update", c.Workdir)
+		return c.Update.start(c.Name, basePath+"/update", c.Workdir)
 	default:
 		return fmt.Errorf("%s: not a valid option", mode)
 	}
