@@ -147,9 +147,16 @@ func init() {
 
 func httpHandler() (handler *mux.Router) {
 	handler = mux.NewRouter()
+	
 	handler.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "This is diploy home")
 	})
+
+	handler.HandleFunc("/_health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-type", "application/json")
+		fmt.Fprint(w, "OK")
+	})
+
 	handler.HandleFunc("/start/{mode}/{name}", startWithName).Methods("POST")
 	handler.HandleFunc("/stop/{name}", stopWithName).Methods("POST")
 	handler.HandleFunc("/restart/{name}", restartWithName).Methods("POST")
